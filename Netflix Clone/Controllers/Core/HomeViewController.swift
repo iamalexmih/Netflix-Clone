@@ -5,9 +5,22 @@
 
 import UIKit
 
+
+enum Sections: Int {
+    case TrendingMovies = 0
+    case TrendingTv = 1
+    case Popular = 2
+    case Upcoming = 3
+    case TopRated = 4
+}
+
+
 class HomeViewController: UIViewController {
 
     let sectionTitle: [String] = ["Trending Movies", "Trending Tv", "Popular", "Upcoming Movies", "Top Rated"]
+    
+    private var randomTrendingMovie: Movie?
+    private var headerView: HeroHeaderView?
     
     private let homeFeedTable: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
@@ -27,8 +40,10 @@ class HomeViewController: UIViewController {
         homeFeedTable.delegate = self
         homeFeedTable.dataSource = self
         
-        let headerView = HeroHeaderView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 450))
+        headerView = HeroHeaderView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 500))
         homeFeedTable.tableHeaderView = headerView
+        headerView?.delegate = self
+        configHeroHeaderView()
         
         configNavBar()
         
@@ -41,7 +56,20 @@ class HomeViewController: UIViewController {
         homeFeedTable.frame = view.bounds
     }
     
-    
+    private func configHeroHeaderView() {
+        APICaller.shared.getTrendingMovies { [weak self] result in
+            switch result {
+                case .success(let movies):
+                    guard let selectedMovie = movies.randomElement() else { return }
+                    self?.randomTrendingMovie = selectedMovie
+                    self?.headerView?.config(with: TitleViewModel(titleName: selectedMovie.original_title ?? "",
+                                                                  posterURL: selectedMovie.poster_path ?? ""))
+                    self?.headerView?.setSelectMovie(with: selectedMovie)
+                case .failure(let error):
+                    print(error.localizedDescription)
+            }
+        }
+    }
     
     private func configNavBar() {
         var image = UIImage(named: "netflix_Logo")
@@ -86,7 +114,58 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         else {
             return UITableViewCell()
         }
-        cell.textLabel?.text = "12345"
+        
+        cell.delegate = self
+        
+        switch indexPath.section {
+            case Sections.TrendingMovies.rawValue:
+                APICaller.shared.getTrendingMovies { result in
+                    switch result {
+                        case .success(let movies):
+                            cell.config(with: movies)
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                    }
+                }
+            case Sections.TrendingTv.rawValue:
+                APICaller.shared.getTrendingTvs { result in
+                    switch result {
+                        case .success(let movies):
+                            cell.config(with: movies)
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                    }
+                }
+            case Sections.Popular.rawValue:
+                APICaller.shared.getPopularMovies { result in
+                    switch result {
+                        case .success(let movies):
+                            cell.config(with: movies)
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                    }
+                }
+            case Sections.Upcoming.rawValue:
+                APICaller.shared.getUpcomingMovies { result in
+                    switch result {
+                        case .success(let movies):
+                            cell.config(with: movies)
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                    }
+                }
+            case Sections.TopRated.rawValue:
+                APICaller.shared.getTopRatedMovies { result in
+                    switch result {
+                        case .success(let movies):
+                            cell.config(with: movies)
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                    }
+                }
+            default:
+                return UITableViewCell()
+        }
         
         return cell
     }
@@ -124,5 +203,16 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
         let offset = scrollView.contentOffset.y + defaultOffset
         
         navigationController?.navigationBar.transform = .init(translationX: 0, y: min(0, -offset))
+    }
+}
+
+
+extension HomeViewController: CollectionViewTableViewCellDelegate {
+    func collectionViewTableViewCellDidTapCell(viewModel: TitlePreviewViewModel) {
+        DispatchQueue.main.async { [weak self] in
+            let vc = TitlePreviewViewController()
+            vc.config(with: viewModel)
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }
     }
 }

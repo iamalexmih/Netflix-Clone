@@ -25,6 +25,7 @@ class MainTabBarViewController: UITabBarController {
         searchNavController.tabBarItem.image = UIImage(systemName: "magnifyingglass")
         downloadNavController.tabBarItem.image = UIImage(systemName: "arrow.down.to.line")
         
+        
         homeNavController.title = "Home"
         upcomingNavController.title = "Coming Soon"
         searchNavController.title = "Top Search"
