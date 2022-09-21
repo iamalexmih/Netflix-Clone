@@ -9,6 +9,6 @@
 
 
 <p align="center">
-<img src="http: add Adress" 
-alt="screenshots main Screen App" width="300" />
+<img src="https://github.com/iamalexmih/Netflix-Clone/blob/main/Screenshot/«ScreenShot»%202022-09-20%20в%2019.05.25.png" 
+alt="screenshots main Screen App" width="1000" />
 </p>
